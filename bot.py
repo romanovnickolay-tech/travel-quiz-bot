@@ -1,10 +1,13 @@
 
+
 import os
 import json
 from aiogram import Bot, Dispatcher, executor, types
 
+# Получаем токен из переменной окружения Railway
 API_TOKEN = os.getenv("BOT_TOKEN")
 
+# Отладочный вывод (можно удалить после проверки)
 print("TOKEN:", API_TOKEN)
 print("Working directory:", os.getcwd())
 print("Files:", os.listdir())
@@ -12,17 +15,19 @@ print("Files:", os.listdir())
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
+# Путь к файлу статистики (Railway разрешает запись только в /tmp)
+STATS_PATH = "/tmp/stats.json"
 
 # Загружаем статистику или создаём новую
 try:
-    with open("stats.json", "r") as f:
+    with open(STATS_PATH, "r") as f:
         stats = json.load(f)
 except:
     stats = {"total": 0, "countries": {}}
 
 
 def save_stats():
-    with open("stats.json", "w") as f:
+    with open(STATS_PATH, "w") as f:
         json.dump(stats, f, ensure_ascii=False, indent=2)
 
 
