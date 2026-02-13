@@ -1,10 +1,12 @@
+import os
 import json
 from aiogram import Bot, Dispatcher, executor, types
 
-API_TOKEN = "8594199632:AAHEABnUdvfDj3zd6-Xpzh2cutUQ-GV7gGA"
+API_TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
+
 
 # Загружаем статистику или создаём новую
 try:
