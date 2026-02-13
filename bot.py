@@ -1,13 +1,13 @@
 
-
 import os
 import json
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, types
+from aiogram import executor
+from aiohttp import web
 
-# Получаем токен из переменной окружения Railway
+# Получаем токен
 API_TOKEN = os.getenv("BOT_TOKEN")
 
-# Отладочный вывод (можно удалить после проверки)
 print("TOKEN:", API_TOKEN)
 print("Working directory:", os.getcwd())
 print("Files:", os.listdir())
@@ -15,10 +15,17 @@ print("Files:", os.listdir())
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-# Путь к файлу статистики (Railway разрешает запись только в /tmp)
+# Railway выдаёт домен в переменной окружения
+WEBHOOK_HOST = os.getenv("RAILWAY_PUBLIC_DOMAIN")  # например https://mybot.up.railway.app
+WEBHOOK_PATH = f"/webhook/{API_TOKEN}"
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+
+WEBAPP_HOST = "0.0.0.0"
+WEBAPP_PORT = int(os.getenv("PORT", 8080))
+
+# Статистика — только в /tmp
 STATS_PATH = "/tmp/stats.json"
 
-# Загружаем статистику или создаём новую
 try:
     with open(STATS_PATH, "r") as f:
         stats = json.load(f)
@@ -50,13 +57,9 @@ async def start(message: types.Message):
 @dp.message_handler(content_types=['web_app_data'])
 async def web_app_data_handler(message: types.Message):
     data = json.loads(message.web_app_data.data)
-
     result = data.get("result")
 
-    # увеличиваем общий счётчик
     stats["total"] += 1
-
-    # считаем популярность стран
     stats["countries"][result] = stats["countries"].get(result, 0) + 1
 
     save_stats()
@@ -76,5 +79,26 @@ async def stats_cmd(message: types.Message):
     await message.answer(text)
 
 
+# -----------------------------
+#       WEBHOOK MODE
+# -----------------------------
+
+async def on_startup(dp):
+    print("Setting webhook:", WEBHOOK_URL)
+    await bot.set_webhook(WEBHOOK_URL)
+
+
+async def on_shutdown(dp):
+    print("Deleting webhook")
+    await bot.delete_webhook()
+
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_webhook(
+        dispatcher=dp,
+        webhook_path=WEBHOOK_PATH,
+        on_startup=on_startup,
+        on_shutdown=on_shutdown,
+        host=WEBAPP_HOST,
+        port=WEBAPP_PORT,
+    )
