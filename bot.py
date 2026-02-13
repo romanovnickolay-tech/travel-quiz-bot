@@ -1,3 +1,7 @@
+print("TOKEN:", API_TOKEN)
+print("Working directory:", os.getcwd())
+print("Files:", os.listdir())
+
 import os
 import json
 from aiogram import Bot, Dispatcher, executor, types
