@@ -1,12 +1,13 @@
-print("TOKEN:", API_TOKEN)
-print("Working directory:", os.getcwd())
-print("Files:", os.listdir())
 
 import os
 import json
 from aiogram import Bot, Dispatcher, executor, types
 
 API_TOKEN = os.getenv("BOT_TOKEN")
+
+print("TOKEN:", API_TOKEN)
+print("Working directory:", os.getcwd())
+print("Files:", os.listdir())
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
